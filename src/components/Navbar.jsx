@@ -1,11 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
+import { useSearch } from "../context/SearchContext";
 
 export default function Navbar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [localSearchValue, setLocalSearchValue] = useState("");
   const { theme, toggleTheme } = useTheme();
   const { setMobileOpen } = useSidebar();
+  const { user, logout } = useAuth();
+  const { searchQuery, setSearchQuery } = useSearch();
+  const navigate = useNavigate();
+
+  // Initialize local search value from global state
+  useEffect(() => {
+    setLocalSearchValue(searchQuery);
+  }, [searchQuery]);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(localSearchValue);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [localSearchValue, setSearchQuery]);
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const handleSignOut = (e) => {
+    e.preventDefault();
+    logout();
+    setSearchQuery(""); // Clear search on logout
+    setShowProfileMenu(false);
+    navigate("/login");
+  };
 
   return (
     <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
@@ -82,6 +120,8 @@ export default function Navbar() {
               <input
                 type="text"
                 placeholder="Search..."
+                value={localSearchValue}
+                onChange={(e) => setLocalSearchValue(e.target.value)}
                 className="pl-10 pr-4 py-2 w-64 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
               <svg
@@ -141,14 +181,14 @@ export default function Navbar() {
                 className="flex items-center gap-2 sm:gap-3 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm flex-shrink-0">
-                  JD
+                  {user ? getInitials(user.name) : "U"}
                 </div>
                 <div className="hidden sm:block text-left">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    John Doe
+                    {user?.name || "User"}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    john@example.com
+                    {user?.email || ""}
                   </p>
                 </div>
                 <svg
@@ -178,10 +218,10 @@ export default function Navbar() {
                   <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-20">
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        John Doe
+                        {user?.name || "User"}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                        john@example.com
+                        {user?.email || ""}
                       </p>
                     </div>
                     <a
@@ -254,9 +294,9 @@ export default function Navbar() {
                       </div>
                     </a>
                     <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
-                      <a
-                        href="#"
-                        className="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full text-left block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <svg
@@ -274,7 +314,7 @@ export default function Navbar() {
                           </svg>
                           Sign Out
                         </div>
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </>

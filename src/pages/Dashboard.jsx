@@ -1,10 +1,16 @@
+import { useMemo } from "react";
 import { StatCard } from "../components/Cards";
 import { LineChart, BarChart } from "../components/Charts";
 import { ProjectCard } from "../components/Cards";
 import { mockStats, mockChartData, mockProjects } from "../data/mockData";
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
 
 export default function Dashboard() {
-  const recentProjects = mockProjects.slice(0, 3);
+  const { filterByQuery } = useGlobalSearch();
+  const recentProjects = useMemo(() => {
+    const projects = mockProjects.slice(0, 3);
+    return filterByQuery(projects, ["name", "description", "status"]);
+  }, [filterByQuery]);
 
   return (
     <div className="space-y-4 sm:space-y-6">

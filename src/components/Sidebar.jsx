@@ -1,11 +1,35 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function Sidebar() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { mobileOpen, setMobileOpen } = useSidebar();
+  const { user } = useAuth();
+
+  const formatName = (raw) => {
+    if (!raw) return "User";
+    return raw
+      .replace(/[._-]+/g, " ")
+      .trim()
+      .split(" ")
+      .filter(Boolean)
+      .map(
+        (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join(" ");
+  };
+
+  const displayName = formatName(user?.name || user?.email?.split("@")[0]);
+
+  const initials = displayName
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -249,15 +273,15 @@ export default function Sidebar() {
             }`}
           >
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0">
-              JD
+              {initials}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  John Doe
+                  {displayName}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  john@example.com
+                  {user?.email}
                 </p>
               </div>
             )}

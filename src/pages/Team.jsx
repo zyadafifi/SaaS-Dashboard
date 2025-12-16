@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { UserTable } from "../components/Tables";
 import { Button } from "../components/Buttons";
 import { InfoCard } from "../components/Cards";
 import { mockTeam, mockUsers } from "../data/mockData";
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
 
 export default function Team() {
   const [selectedView, setSelectedView] = useState("list"); // 'list' or 'grid'
+  const { query, filterByQuery } = useGlobalSearch();
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -19,6 +21,16 @@ export default function Team() {
         return "bg-gray-400";
     }
   };
+
+  // Filter users by search query
+  const filteredUsers = useMemo(() => {
+    return filterByQuery(mockUsers, ["name", "email", "role", "status"]);
+  }, [filterByQuery]);
+
+  // Filter team members by search query
+  const filteredTeam = useMemo(() => {
+    return filterByQuery(mockTeam, ["name", "email", "role"]);
+  }, [filterByQuery]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -53,40 +65,50 @@ export default function Team() {
       </div>
 
       {/* Team Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <InfoCard className="p-4">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-gray-900">
-              {mockTeam.length}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Total Members</p>
-          </div>
-        </InfoCard>
-        <InfoCard className="p-4">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-green-600">
-              {mockTeam.filter((m) => m.status === "online").length}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Online Now</p>
-          </div>
-        </InfoCard>
-        <InfoCard className="p-4">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-blue-600">
-              {mockTeam.filter((m) => m.role.includes("Developer")).length}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Developers</p>
-          </div>
-        </InfoCard>
-        <InfoCard className="p-4">
-          <div className="text-center">
-            <p className="text-3xl font-bold text-purple-600">
-              {mockTeam.filter((m) => m.role.includes("Designer")).length}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">Designers</p>
-          </div>
-        </InfoCard>
-      </div>
+      {!query && (
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <InfoCard className="p-4">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {mockTeam.length}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Total Members
+              </p>
+            </div>
+          </InfoCard>
+          <InfoCard className="p-4">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-green-600">
+                {mockTeam.filter((m) => m.status === "online").length}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Online Now
+              </p>
+            </div>
+          </InfoCard>
+          <InfoCard className="p-4">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-blue-600">
+                {mockTeam.filter((m) => m.role.includes("Developer")).length}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Developers
+              </p>
+            </div>
+          </InfoCard>
+          <InfoCard className="p-4">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-purple-600">
+                {mockTeam.filter((m) => m.role.includes("Designer")).length}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Designers
+              </p>
+            </div>
+          </InfoCard>
+        </div>
+      )}
 
       {/* View Toggle */}
       <div className="flex items-center justify-end">
@@ -116,64 +138,113 @@ export default function Team() {
 
       {/* Team Display */}
       {selectedView === "list" ? (
-        <UserTable
-          users={mockUsers}
-          onEdit={(user) => console.log("Edit", user)}
-          onDelete={(user) => console.log("Delete", user)}
-        />
+        <>
+          <UserTable
+            users={filteredUsers}
+            onEdit={(user) => console.log("Edit", user)}
+            onDelete={(user) => console.log("Delete", user)}
+          />
+          {filteredUsers.length === 0 && query && (
+            <div className="text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                No users found
+              </h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                No results found for '{query}'
+              </p>
+            </div>
+          )}
+        </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {mockTeam.map((member) => (
-            <InfoCard
-              key={member.id}
-              title={member.name}
-              description={member.role}
-              className="p-6"
-            >
-              <div className="mt-4 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                      {member.avatar}
+          {filteredTeam.length === 0 && query ? (
+            <div className="col-span-full text-center py-12">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                No team members found
+              </h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                No results found for '{query}'
+              </p>
+            </div>
+          ) : (
+            filteredTeam.map((member) => (
+              <InfoCard
+                key={member.id}
+                title={member.name}
+                description={member.role}
+                className="p-6"
+              >
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                        {member.avatar}
+                      </div>
+                      <div
+                        className={`absolute bottom-0 right-0 w-4 h-4 ${getStatusColor(
+                          member.status
+                        )} rounded-full border-2 border-white`}
+                      ></div>
                     </div>
-                    <div
-                      className={`absolute bottom-0 right-0 w-4 h-4 ${getStatusColor(
-                        member.status
-                      )} rounded-full border-2 border-white`}
-                    ></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {member.email}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                        {member.status}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {member.email}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                      {member.status}
-                    </p>
+                  <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      Message
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                        />
+                      </svg>
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    Message
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
-                    </svg>
-                  </Button>
-                </div>
-              </div>
-            </InfoCard>
-          ))}
+              </InfoCard>
+            ))
+          )}
         </div>
       )}
     </div>

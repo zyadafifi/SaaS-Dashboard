@@ -1,14 +1,20 @@
 import { StatCard } from "../components/Cards";
 import { LineChart, AreaChart } from "../components/Charts";
 import { mockStats, mockChartData } from "../data/mockData";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
+  const { user } = useAuth();
+  
+  // Extract first name from user name (e.g., "Ziad User" -> "Ziad")
+  const firstName = user?.name?.split(" ")[0] || null;
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 rounded-xl shadow-lg p-6 sm:p-8 text-white">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-          Welcome back, John! 👋
+          Welcome back, {firstName || "there"}! 👋
         </h1>
         <p className="text-sm sm:text-base text-blue-100">
           Here's what's happening with your business today.

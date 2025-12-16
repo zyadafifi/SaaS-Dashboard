@@ -1,8 +1,37 @@
+import { useMemo } from "react";
 import { StatCard } from "../components/Cards";
 import { LineChart, BarChart, PieChart, AreaChart } from "../components/Charts";
 import { mockStats, mockAnalytics } from "../data/mockData";
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
 
 export default function Analytics() {
+  const { query, filterByQuery } = useGlobalSearch();
+
+  // Top Pages list
+  const topPages = useMemo(
+    () => ["/dashboard", "/analytics", "/settings", "/projects"],
+    []
+  );
+  const filteredTopPages = useMemo(() => {
+    return filterByQuery(
+      topPages.map((page) => ({ page, views: Math.floor(Math.random() * 5000 + 1000) })),
+      ["page"]
+    );
+  }, [topPages, filterByQuery]);
+
+  // Geographic Data list
+  const geographicData = useMemo(
+    () => [
+      { country: "United States", value: "45%" },
+      { country: "United Kingdom", value: "18%" },
+      { country: "Canada", value: "12%" },
+      { country: "Australia", value: "8%" },
+    ],
+    []
+  );
+  const filteredGeographicData = useMemo(() => {
+    return filterByQuery(geographicData, ["country"]);
+  }, [geographicData, filterByQuery]);
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
@@ -135,19 +164,27 @@ export default function Analytics() {
       {/* Additional Analytics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Top Pages
           </h3>
           <div className="space-y-3">
-            {["/dashboard", "/analytics", "/settings", "/projects"].map(
-              (page, idx) => (
+            {filteredTopPages.length === 0 && query ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No results found for '{query}'
+                </p>
+              </div>
+            ) : (
+              filteredTopPages.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{page}</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {Math.floor(Math.random() * 5000 + 1000)} views
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {item.page}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    {item.views} views
                   </span>
                 </div>
-              )
+              ))
             )}
           </div>
         </div>
@@ -191,23 +228,28 @@ export default function Analytics() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Geographic Data
           </h3>
           <div className="space-y-3">
-            {[
-              { country: "United States", value: "45%" },
-              { country: "United Kingdom", value: "18%" },
-              { country: "Canada", value: "12%" },
-              { country: "Australia", value: "8%" },
-            ].map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{item.country}</span>
-                <span className="text-sm font-medium text-gray-900">
-                  {item.value}
-                </span>
+            {filteredGeographicData.length === 0 && query ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No results found for '{query}'
+                </p>
               </div>
-            ))}
+            ) : (
+              filteredGeographicData.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {item.country}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    {item.value}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
