@@ -16,10 +16,10 @@ Live Demo: <PASTE_NETLIFY_URL_HERE>
 ![Dashboard](./screenshots/Dashboard.jpg)
 *Main dashboard with key metrics and analytics*
 
-![Projects](./screenshots/projects.png)
+![Projects](./screenshots/Projects.jpg)
 *Projects management page with CRUD operations*
 
-![Login](./screenshots/login.png)
+![Login](./screenshots/Login.jpg)
 *Login page with form validation*
 
 ## Features
