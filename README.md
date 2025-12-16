@@ -13,7 +13,7 @@ Live Demo: <PASTE_NETLIFY_URL_HERE>
 
 ## Screenshots
 
-![Dashboard](./screenshots/dashboard.png)
+![Dashboard](./screenshots/Dashboard.jpg)
 *Main dashboard with key metrics and analytics*
 
 ![Projects](./screenshots/projects.png)
